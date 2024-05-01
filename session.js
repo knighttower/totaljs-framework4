@@ -821,7 +821,7 @@ SessionProto.load = function(callback) {
 };
 
 function cluster_send(obj) {
-	obj.TYPE = 'session';
+	obj.event_type = 'session';
 	obj.ID = F.id;
 	process.send(obj);
 }

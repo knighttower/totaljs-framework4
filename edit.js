@@ -14,7 +14,7 @@ exports.init = function(url) {
 
 		client.on('message', function(msg) {
 
-			if (msg.TYPE === 'init') {
+			if (msg.event_type === 'init') {
 				console.log(DIVIDER);
 				console.log(HEADER + ': Welcome to "' + msg.name + ' (' + msg.version + ')"');
 				console.log('> Project: "' + msg.project + '"');
@@ -36,7 +36,7 @@ exports.init = function(url) {
 		});
 
 		client.on('open', function() {
-			client.send({ TYPE: 'init', version: VERSION });
+			client.send({ event_type: 'init', version: VERSION });
 		});
 
 		client.on('close', function(e) {
@@ -67,14 +67,14 @@ exports.init = function(url) {
 
 NEWSCHEMA('CodeModule', function(schema) {
 
-	schema.define('TYPE', String, true);
+	schema.define('event_type', String, true);
 	schema.define('path', String);
 	schema.define('data', String);
 	schema.define('nocompress', Boolean);
 
 	schema.addWorkflow('exec', function($, model) {
 
-		switch (model.TYPE) {
+		switch (model.event_type) {
 
 			case 'ping':
 				$.success(VERSION);

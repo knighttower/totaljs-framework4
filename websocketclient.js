@@ -62,7 +62,7 @@ function registerapi(client) {
 
 	client.$api = true;
 	client.on('message', function(msg) {
-		if (msg.TYPE === 'api') {
+		if (msg.event_type === 'api') {
 			var obj = CALLBACKS[msg.callbackid];
 			if (obj) {
 				delete CALLBACKS[msg.callbackid];
@@ -95,7 +95,7 @@ WebSocketClientProto.api = function(schema, data, callback, timeout) {
 		data = null;
 	}
 
-	var msg = { TYPE: 'api', data: { schema: schema, data: data }};
+	var msg = { event_type: 'api', data: { schema: schema, data: data }};
 
 	if (callback) {
 

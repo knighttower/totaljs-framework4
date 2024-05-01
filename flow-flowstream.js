@@ -131,7 +131,7 @@ Instance.prototype.httprequest = function(opt, callback) {
 		var callbackid = callback ? (CALLBACKID++) : -1;
 		if (callbackid !== -1)
 			CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/httprequest', data: opt, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/httprequest', data: opt, callbackid: callbackid });
 	} else
 		httprequest(self.flow, opt, callback);
 
@@ -281,7 +281,7 @@ Instance.prototype.cmd = function(path, data) {
 
 	var self = this;
 	if (self.flow.isworkerthread) {
-		self.flow.postMessage2({ TYPE: 'stream/cmd', path: path, data: data });
+		self.flow.postMessage2({ event_type: 'stream/cmd', path: path, data: data });
 	} else {
 		var fn = path.indexOf('.') === - 1 ? global[path] : U.get(global, path);
 		if (typeof(fn) === 'function')
@@ -297,7 +297,7 @@ Instance.prototype.send = function(id, data, callback) {
 		var callbackid = callback ? (CALLBACKID++) : -1;
 		if (callbackid !== -1)
 			CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/send', id: id, data: data, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/send', id: id, data: data, callbackid: callbackid });
 	} else
 		send(self.flow, id, data, callback);
 };
@@ -321,7 +321,7 @@ Instance.prototype.exec = function(opt, callback) {
 		var callbackid = opt.callback ? (CALLBACKID++) : -1;
 		if (callbackid !== -1)
 			CALLBACKS[callbackid] = { id: self.flow.id, callback: opt.callback };
-		self.flow.postMessage2({ TYPE: 'stream/exec', id: opt.id, uid: opt.uid, ref: opt.ref, vars: opt.vars, repo: opt.repo, data: opt.data, timeout: opt.timeout, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/exec', id: opt.id, uid: opt.uid, ref: opt.ref, vars: opt.vars, repo: opt.repo, data: opt.data, timeout: opt.timeout, callbackid: callbackid });
 	} else
 		exec(self.flow, opt);
 
@@ -331,7 +331,7 @@ Instance.prototype.exec = function(opt, callback) {
 function execfn(self, name, id, data) {
 	var flow = self.flow;
 	if (flow.isworkerthread)
-		flow.postMessage2({ TYPE: 'stream/' + name, id: id, data: data });
+		flow.postMessage2({ event_type: 'stream/' + name, id: id, data: data });
 	else {
 		if (!flow.paused) {
 			if (id[0] === '@') {
@@ -375,7 +375,7 @@ Instance.prototype.pause = function(is) {
 	var self = this;
 	var flow = self.flow;
 	if (flow.isworkerthread)
-		flow.postMessage2({ TYPE: 'stream/pause', is: is });
+		flow.postMessage2({ event_type: 'stream/pause', is: is });
 	else
 		flow.pause(is == null ? !flow.paused : is);
 	return self;
@@ -394,7 +394,7 @@ Instance.prototype.eval = function(msg, callback) {
 		var callbackid = callback ? (CALLBACKID++) : -1;
 		if (callback)
 			CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'ui/message', data: msg, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'ui/message', data: msg, callbackid: callbackid });
 	} else
 		self.flow.proxy.message(msg, -1, callback);
 	return self;
@@ -416,7 +416,7 @@ Instance.prototype.kill = Instance.prototype.destroy = function() {
 
 	if (self.flow.isworkerthread) {
 
-		self.postMessage({ TYPE: 'stream/destroy' });
+		self.postMessage({ event_type: 'stream/destroy' });
 		setTimeout(self => self.flow.terminate ? self.flow.terminate() : self.flow.kill(9), 1000, self);
 
 		if (PROXIES[self.id]) {
@@ -458,7 +458,7 @@ Instance.prototype.input = function(flowstreamid, fromid, toid, data, reference)
 	var flow = self.flow;
 
 	if (flow.isworkerthread) {
-		flow.postMessage2({ TYPE: 'stream/input', flowstreamid: flowstreamid, fromid: fromid, id: toid, data: data, reference: reference });
+		flow.postMessage2({ event_type: 'stream/input', flowstreamid: flowstreamid, fromid: fromid, id: toid, data: data, reference: reference });
 		return self;
 	}
 
@@ -502,7 +502,7 @@ Instance.prototype.add = function(id, body, callback) {
 		var callbackid = callback ? (CALLBACKID++) : -1;
 		if (callback)
 			CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/add', id: id, data: body, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/add', id: id, data: body, callbackid: callbackid });
 	} else
 		self.flow.add(id, body, callback, ASFILES);
 	return self;
@@ -515,7 +515,7 @@ Instance.prototype.rem = function(id, callback) {
 		var callbackid = callback ? (CALLBACKID++) : -1;
 		if (callback)
 			CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/rem', id: id, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/rem', id: id, callbackid: callbackid });
 	} else
 		self.flow.unregister(id, callback);
 	return self;
@@ -529,7 +529,7 @@ Instance.prototype.components = function(callback) {
 	if (self.flow.isworkerthread) {
 		var callbackid = CALLBACKID++;
 		CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/components', callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/components', callbackid: callbackid });
 	} else
 		callback(null, self.flow.components(true));
 
@@ -569,7 +569,7 @@ Instance.prototype.io = function(id, callback) {
 	if (self.flow.isworkerthread) {
 		var callbackid = CALLBACKID++;
 		CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/io', id: id, callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/io', id: id, callbackid: callbackid });
 		return self;
 	}
 
@@ -598,7 +598,7 @@ Instance.prototype.io = function(id, callback) {
 Instance.prototype.reconfigure = function(id, config) {
 	var self = this;
 	if (self.flow.isworkerthread)
-		self.flow.postMessage2({ TYPE: 'stream/reconfigure', id: id, data: config });
+		self.flow.postMessage2({ event_type: 'stream/reconfigure', id: id, data: config });
 	else
 		self.flow.reconfigure(id, config);
 	return self;
@@ -626,7 +626,7 @@ Instance.prototype.reload = function(data) {
 		for (let key in data)
 			flow.$schema[key] = data[key];
 		self.proxypath = data.proxypath;
-		flow.postMessage2({ TYPE: 'stream/rewrite', data: data });
+		flow.postMessage2({ event_type: 'stream/rewrite', data: data });
 	} else {
 		for (let key in data)
 			flow.$schema[key] = data[key];
@@ -653,7 +653,7 @@ Instance.prototype.refresh = function(id, type, data, restart) {
 			else
 				flow.kill(9);
 		} else
-			flow.postMessage2({ TYPE: 'stream/refresh', id: id, type: type, data: data });
+			flow.postMessage2({ event_type: 'stream/refresh', id: id, type: type, data: data });
 
 	} else {
 
@@ -678,7 +678,7 @@ Instance.prototype.variables = function(variables) {
 
 	if (flow.isworkerthread) {
 		flow.$schema.variables = variables;
-		flow.postMessage2({ TYPE: 'stream/variables', data: variables });
+		flow.postMessage2({ event_type: 'stream/variables', data: variables });
 	} else {
 		flow.variables = variables;
 		for (var key in flow.meta.flow) {
@@ -686,7 +686,7 @@ Instance.prototype.variables = function(variables) {
 			instance.variables && instance.variables(flow.variables);
 			instance.vary && instance.vary('variables');
 		}
-		flow.proxy.online && flow.proxy.send({ TYPE: 'flow/variables', data: variables });
+		flow.proxy.online && flow.proxy.send({ event_type: 'flow/variables', data: variables });
 		flow.save();
 	}
 	return self;
@@ -700,7 +700,7 @@ Instance.prototype.variables2 = function(variables) {
 
 	if (flow.isworkerthread) {
 		flow.$schema.variables2 = variables;
-		flow.postMessage2({ TYPE: 'stream/variables2', data: variables });
+		flow.postMessage2({ event_type: 'stream/variables2', data: variables });
 	} else {
 		flow.variables2 = variables;
 		for (var key in flow.meta.flow) {
@@ -719,7 +719,7 @@ Instance.prototype.export = function(callback) {
 	if (flow.isworkerthread) {
 		var callbackid = callback ? (CALLBACKID++) : -1;
 		CALLBACKS[callbackid] = { id: self.flow.id, callback: callback };
-		self.flow.postMessage2({ TYPE: 'stream/export', callbackid: callbackid });
+		self.flow.postMessage2({ event_type: 'stream/export', callbackid: callbackid });
 	} else
 		callback(null, self.flow.export2());
 	return self;
@@ -841,7 +841,7 @@ function send(self, id, data, callback) {
 
 		if (Parent) {
 			let opt = {};
-			opt.TYPE = 'stream/send';
+			opt.event_type = 'stream/send';
 			opt.callbackid = callback;
 			opt.data = output;
 			Parent.postMessage(opt);
@@ -958,13 +958,13 @@ function httprequest(self, opt, callback) {
 			// data.headers {Object}
 			// data.body {Buffer}
 			if (Parent)
-				Parent.postMessage({ TYPE: 'stream/httpresponse', data: data, callbackid: callback });
+				Parent.postMessage({ event_type: 'stream/httpresponse', data: data, callbackid: callback });
 			else
 				callback(data);
 		});
 	} else {
 		if (Parent)
-			Parent.postMessage({ TYPE: 'stream/httpresponse', data: { type: 'error', body: 404 }, callbackid: callback });
+			Parent.postMessage({ event_type: 'stream/httpresponse', data: { type: 'error', body: 404 }, callbackid: callback });
 		else
 			callback({ type: 'error', body: 404 });
 	}
@@ -1032,7 +1032,7 @@ function init_current(meta, callback, nested) {
 
 			var id;
 
-			switch (msg.TYPE) {
+			switch (msg.event_type) {
 
 				case 'ping':
 					flow.proxy.ping && clearTimeout(flow.proxy.ping);
@@ -1079,7 +1079,7 @@ function init_current(meta, callback, nested) {
 				case 'stream/notify':
 				case 'stream/trigger':
 					id = msg.id;
-					var type = msg.TYPE.substring(7);
+					var type = msg.event_type.substring(7);
 					if (!flow.paused) {
 						if (id[0] === '@') {
 							id = id.substring(1);
@@ -1119,9 +1119,9 @@ function init_current(meta, callback, nested) {
 						flow.proxy.refreshmeta();
 
 						if (flow.proxy.online) {
-							flow.proxy.send({ TYPE: 'flow/components', data: flow.components(true) });
-							flow.proxy.send({ TYPE: 'flow/design', data: flow.export() });
-							flow.proxy.send({ TYPE: 'flow/variables', data: flow.variables });
+							flow.proxy.send({ event_type: 'flow/components', data: flow.components(true) });
+							flow.proxy.send({ event_type: 'flow/design', data: flow.export() });
+							flow.proxy.send({ event_type: 'flow/variables', data: flow.variables });
 						}
 
 					});
@@ -1228,7 +1228,7 @@ function init_current(meta, callback, nested) {
 						var instance = flow.meta.flow[key];
 						instance.variables && instance.variables(flow.variables);
 					}
-					flow.proxy.online && flow.proxy.send({ TYPE: 'flow/variables', data: msg.data });
+					flow.proxy.online && flow.proxy.send({ event_type: 'flow/variables', data: msg.data });
 					flow.save();
 					break;
 
@@ -1253,7 +1253,7 @@ function init_current(meta, callback, nested) {
 				case 'ui/message':
 					if (msg.callbackid) {
 						flow.proxy.message(msg.data, msg.clientid, function(data) {
-							msg.TYPE = 'stream/eval';
+							msg.event_type = 'stream/eval';
 							msg.data = data;
 							Parent.postMessage(msg);
 						});
@@ -1264,20 +1264,20 @@ function init_current(meta, callback, nested) {
 		});
 
 		flow.proxy.remove = function() {
-			Parent.postMessage({ TYPE: 'stream/remove' });
+			Parent.postMessage({ event_type: 'stream/remove' });
 		};
 
 		flow.proxy.kill = function() {
-			Parent.postMessage({ TYPE: 'stream/kill' });
+			Parent.postMessage({ event_type: 'stream/kill' });
 		};
 
 		flow.proxy.send = function(msg, type, clientid) {
-			Parent.postMessage({ TYPE: 'ui/send', data: msg, type: type, clientid: clientid });
+			Parent.postMessage({ event_type: 'ui/send', data: msg, type: type, clientid: clientid });
 		};
 
 		flow.proxy.save = function(data) {
 			if (!flow.$schema || !flow.$schema.readonly)
-				Parent.postMessage({ TYPE: 'stream/save', data: data });
+				Parent.postMessage({ event_type: 'stream/save', data: data });
 		};
 
 		flow.proxy.httproute = function(url, callback, instance) {
@@ -1286,12 +1286,12 @@ function init_current(meta, callback, nested) {
 					flow.httproutes[url] = { id: instance.id, component: instance.component, callback: callback };
 				else
 					delete flow.httproutes[url];
-				Parent.postMessage({ TYPE: 'stream/httproute', data: { url: url, remove: callback == null }});
+				Parent.postMessage({ event_type: 'stream/httproute', data: { url: url, remove: callback == null }});
 			}
 		};
 
 		flow.proxy.done = function(err) {
-			Parent.postMessage({ TYPE: 'stream/done', error: err });
+			Parent.postMessage({ event_type: 'stream/done', error: err });
 		};
 
 		flow.proxy.error = function(err, source, instance) {
@@ -1329,23 +1329,23 @@ function init_current(meta, callback, nested) {
 				}
 			}
 
-			Parent.postMessage({ TYPE: 'stream/error', error: err.toString(), stack: err.stack, source: source, id: instanceid, component: componentid });
+			Parent.postMessage({ event_type: 'stream/error', error: err.toString(), stack: err.stack, source: source, id: instanceid, component: componentid });
 		};
 
 		flow.proxy.refresh = function(type) {
-			Parent.postMessage({ TYPE: 'stream/refresh', type: type });
+			Parent.postMessage({ event_type: 'stream/refresh', type: type });
 		};
 
 		flow.proxy.output = function(id, data, flowstreamid, instanceid, reference) {
-			Parent.postMessage({ TYPE: 'stream/output', id: id, data: data, flowstreamid: flowstreamid, instanceid: instanceid, reference: reference });
+			Parent.postMessage({ event_type: 'stream/output', id: id, data: data, flowstreamid: flowstreamid, instanceid: instanceid, reference: reference });
 		};
 
 		flow.proxy.input = function(fromid, tfsid, toid, data, reference) {
-			Parent.postMessage({ TYPE: 'stream/toinput', fromflowstreamid: flow.id, fromid: fromid, toflowstreamid: tfsid, toid: toid, data: data, reference: reference });
+			Parent.postMessage({ event_type: 'stream/toinput', fromflowstreamid: flow.id, fromid: fromid, toflowstreamid: tfsid, toid: toid, data: data, reference: reference });
 		};
 
 		flow.proxy.restart = function() {
-			Parent.postMessage({ TYPE: 'stream/restart' });
+			Parent.postMessage({ event_type: 'stream/restart' });
 		};
 
 		flow.proxy.io = function(flowstreamid, id, callback) {
@@ -1363,7 +1363,7 @@ function init_current(meta, callback, nested) {
 			if (callback)
 				CALLBACKS[callbackid] = { id: flow.id, callback: callback };
 
-			Parent.postMessage({ TYPE: 'stream/io2', flowstreamid: flowstreamid, id: id, callbackid: callbackid });
+			Parent.postMessage({ event_type: 'stream/io2', flowstreamid: flowstreamid, id: id, callbackid: callbackid });
 		};
 
 	} else {
@@ -1436,7 +1436,7 @@ function init_current(meta, callback, nested) {
 				}
 			}
 
-			var tmp = { TYPE: 'flow/error', error: err.toString(), source: source, id: instanceid, component: componentid, ts: new Date() };
+			var tmp = { event_type: 'flow/error', error: err.toString(), source: source, id: instanceid, component: componentid, ts: new Date() };
 			flow.$socket && flow.$socket.send(tmp);
 			flow.$client && flow.$client.send(tmp);
 			flow.$instance.onerror && flow.$instance.onerror(err, source, instanceid, componentid);
@@ -1515,7 +1515,7 @@ function init_worker(meta, type, callback) {
 
 		Flow.$events.message && Flow.emit('message', worker.$instance.id, msg);
 
-		switch (msg.TYPE) {
+		switch (msg.event_type) {
 
 			case 'stream/stats':
 				worker.stats = msg.data;
@@ -1564,7 +1564,7 @@ function init_worker(meta, type, callback) {
 				break;
 
 			case 'stream/rpc':
-				rpc(msg.name, msg.data, (err, response) => worker.postMessage2({ TYPE: 'stream/rpcresponse', error: err, data: response, callbackid: msg.callbackid }));
+				rpc(msg.name, msg.data, (err, response) => worker.postMessage2({ event_type: 'stream/rpcresponse', error: err, data: response, callbackid: msg.callbackid }));
 				break;
 
 			case 'stream/export':
@@ -1585,7 +1585,7 @@ function init_worker(meta, type, callback) {
 				break;
 
 			case 'stream/error':
-				tmp = { TYPE: 'flow/error', error: msg.error, stack: msg.stack, source: msg.source, id: msg.id, component: msg.component, ts: new Date() };
+				tmp = { event_type: 'flow/error', error: msg.error, stack: msg.stack, source: msg.source, id: msg.id, component: msg.component, ts: new Date() };
 				worker.$socket && worker.$socket.send(tmp);
 				worker.$client && worker.$client.send(tmp);
 				worker.$instance.onerror && worker.$instance.onerror(msg.error, msg.source, msg.id, msg.component, msg.stack);
@@ -1662,7 +1662,7 @@ function init_worker(meta, type, callback) {
 
 	});
 
-	ischild && worker.send({ TYPE: 'init', data: meta });
+	ischild && worker.send({ event_type: 'init', data: meta });
 	callback && callback(null, worker.$instance);
 	return worker.$instance;
 }
@@ -1748,7 +1748,7 @@ exports.socket = function(flow, socket, check) {
 		client.isflowstreamready = true;
 
 		if (flow.isworkerthread) {
-			flow.postMessage2({ TYPE: 'ui/newclient', clientid: client.id });
+			flow.postMessage2({ event_type: 'ui/newclient', clientid: client.id });
 		} else {
 			flow.proxy.online = true;
 			flow.proxy.newclient(client.id);
@@ -1768,7 +1768,7 @@ exports.socket = function(flow, socket, check) {
 		delete flow.$socket;
 
 		if (flow.isworkerthread)
-			flow.postMessage2({ TYPE: 'ui/online', online: false });
+			flow.postMessage2({ event_type: 'ui/online', online: false });
 		else
 			flow.proxy.online = false;
 	});
@@ -1777,7 +1777,7 @@ exports.socket = function(flow, socket, check) {
 		if (client.isflowstreamready) {
 			var is = socket.online > 0;
 			if (flow.isworkerthread)
-				flow.postMessage2({ TYPE: 'ui/online', online: is });
+				flow.postMessage2({ event_type: 'ui/online', online: is });
 			else
 				flow.proxy.online = is;
 		}
@@ -1786,7 +1786,7 @@ exports.socket = function(flow, socket, check) {
 	socket.on('message', function(client, msg) {
 		if (client.isflowstreamready) {
 			if (flow.isworkerthread)
-				flow.postMessage2({ TYPE: 'ui/message', clientid: client.id, data: msg });
+				flow.postMessage2({ event_type: 'ui/message', clientid: client.id, data: msg });
 			else
 				flow.proxy.message(msg, client.id);
 		}
@@ -1826,22 +1826,22 @@ exports.client = function(flow, socket) {
 
 	socket.on('close', function() {
 		if (flow.isworkerthread)
-			flow.postMessage2({ TYPE: 'ui/online', online: false });
+			flow.postMessage2({ event_type: 'ui/online', online: false });
 		else
 			flow.proxy.online = false;
 	});
 
 	socket.on('message', function(msg) {
-		if (msg.TYPE === 'flow') {
+		if (msg.event_type === 'flow') {
 			if (flow.isworkerthread) {
-				flow.postMessage2({ TYPE: 'ui/newclient', clientid: clientid });
+				flow.postMessage2({ event_type: 'ui/newclient', clientid: clientid });
 			} else {
 				flow.proxy.online = true;
 				flow.proxy.newclient(clientid);
 			}
 		} else {
 			if (flow.isworkerthread)
-				flow.postMessage2({ TYPE: 'ui/message', clientid: clientid, data: msg });
+				flow.postMessage2({ event_type: 'ui/message', clientid: clientid, data: msg });
 			else
 				flow.proxy.message(msg, clientid);
 		}
@@ -1976,9 +1976,9 @@ function MAKEFLOWSTREAM(meta) {
 	var refresh_components_force = function() {
 		timeoutrefresh = null;
 		if (flow.proxy.online) {
-			flow.proxy.send({ TYPE: 'flow/components', data: flow.components(true) });
+			flow.proxy.send({ event_type: 'flow/components', data: flow.components(true) });
 			var instances = flow.export();
-			flow.proxy.send({ TYPE: 'flow/design', data: instances });
+			flow.proxy.send({ event_type: 'flow/design', data: instances });
 		}
 	};
 
@@ -1992,7 +1992,7 @@ function MAKEFLOWSTREAM(meta) {
 			var callbackid = callback ? (CALLBACKID++) : -1;
 			if (callbackid !== -1)
 				CALLBACKS[callbackid] = { id: flow.id, callback: callback };
-			Parent.postMessage({ TYPE: 'stream/rpc', name: name, data: data, callbackid: callbackid });
+			Parent.postMessage({ event_type: 'stream/rpc', name: name, data: data, callbackid: callbackid });
 		} else
 			rpc(name, data, callback);
 	};
@@ -2008,7 +2008,7 @@ function MAKEFLOWSTREAM(meta) {
 			instance.variables && instance.variables(flow.variables);
 		}
 		var msg = {};
-		msg.TYPE = 'flow/variables';
+		msg.event_type = 'flow/variables';
 		msg.data = data;
 		flow.proxy.online && flow.proxy.send(msg);
 		save();
@@ -2018,7 +2018,7 @@ function MAKEFLOWSTREAM(meta) {
 
 		var tmp;
 
-		switch (msg.TYPE) {
+		switch (msg.event_type) {
 
 			case 'call':
 
@@ -2029,7 +2029,7 @@ function MAKEFLOWSTREAM(meta) {
 					instance = flow.meta.components[msg.id.substring(1)];
 					if (instance && instance.call) {
 						msg.id = msg.callbackid;
-						msg.TYPE = 'flow/call';
+						msg.event_type = 'flow/call';
 						instance.call.call(flow, msg.data, function(data) {
 							msg.data = data;
 							flow.proxy.online && flow.proxy.send(msg, 1, clientid);
@@ -2042,7 +2042,7 @@ function MAKEFLOWSTREAM(meta) {
 				instance = flow.meta.flow[msg.id];
 				if (instance && instance.call) {
 					msg.id = msg.callbackid;
-					msg.TYPE = 'flow/call';
+					msg.event_type = 'flow/call';
 					instance.call(msg.data, function(data) {
 						msg.data = data;
 						flow.proxy.online && flow.proxy.send(msg, 1, clientid);
@@ -2055,8 +2055,8 @@ function MAKEFLOWSTREAM(meta) {
 			case 'meta':
 				var instance = flow.meta.flow[msg.id];
 				if (instance) {
-					instance[msg.TYPE] = msg.data;
-					msg.TYPE = 'flow/' + msg.TYPE;
+					instance[msg.event_type] = msg.data;
+					msg.event_type = 'flow/' + msg.event_type;
 					flow.proxy.online && flow.proxy.send(msg, 0, clientid);
 					callback && callback(msg);
 					save();
@@ -2065,7 +2065,7 @@ function MAKEFLOWSTREAM(meta) {
 
 			case 'status':
 				flow.instances().wait(function(com, next) {
-					com[msg.TYPE] && com[msg.TYPE](msg, 0, clientid);
+					com[msg.event_type] && com[msg.event_type](msg, 0, clientid);
 					setImmediate(next);
 				}, 3);
 				break;
@@ -2080,7 +2080,7 @@ function MAKEFLOWSTREAM(meta) {
 
 			case 'reset':
 				flow.errors.length = 0;
-				msg.TYPE = 'flow/reset';
+				msg.event_type = 'flow/reset';
 				flow.proxy.online && flow.proxy.send(msg, 0, clientid);
 				callback && callback(msg);
 				break;
@@ -2093,7 +2093,7 @@ function MAKEFLOWSTREAM(meta) {
 			case 'config':
 				var instance = flow.meta.flow[msg.id];
 				if (instance) {
-					msg.TYPE = 'flow/configuration';
+					msg.event_type = 'flow/configuration';
 					msg.data = instance.config;
 					flow.proxy.send(msg, 1, clientid);
 				}
@@ -2108,7 +2108,7 @@ function MAKEFLOWSTREAM(meta) {
 				if (com) {
 					com.x = msg.data.x;
 					com.y = msg.data.y;
-					msg.TYPE = 'flow/move';
+					msg.event_type = 'flow/move';
 					flow.proxy.online && flow.proxy.send(msg, 2, clientid);
 					callback && callback(msg);
 					save();
@@ -2117,14 +2117,14 @@ function MAKEFLOWSTREAM(meta) {
 
 			case 'groups':
 				flow.meta.flow.groups = msg.data;
-				msg.TYPE = 'flow/groups';
+				msg.event_type = 'flow/groups';
 				flow.proxy.online && flow.proxy.send(msg, 2, clientid);
 				callback && callback(msg);
 				save();
 				break;
 
 			case 'export':
-				msg.TYPE = 'flow/export';
+				msg.event_type = 'flow/export';
 				if (flow.proxy.online) {
 					msg.data = flow.export2();
 					if (isFLOWSTREAMWORKER)
@@ -2155,7 +2155,7 @@ function MAKEFLOWSTREAM(meta) {
 			case 'save':
 				flow.use(CLONE(msg.data), function(err) {
 					msg.error = err ? err.toString() : null;
-					msg.TYPE = 'flow/design';
+					msg.event_type = 'flow/design';
 					flow.proxy.online && flow.proxy.send(msg);
 					callback && callback(msg);
 					save();
@@ -2166,7 +2166,7 @@ function MAKEFLOWSTREAM(meta) {
 				flow.insert(CLONE(msg.data), function(err) {
 					for (var key in msg.data)
 						msg.data[key] = flow.export_instance2(key);
-					msg.TYPE = 'flow/design_insert';
+					msg.event_type = 'flow/design_insert';
 					msg.error = err ? err.toString() : null;
 					flow.proxy.online && flow.proxy.send(msg);
 					callback && callback(msg);
@@ -2176,7 +2176,7 @@ function MAKEFLOWSTREAM(meta) {
 
 			case 'remove':
 				flow.remove(msg.data, function(err) {
-					msg.TYPE = 'flow/design_remove';
+					msg.event_type = 'flow/design_remove';
 					msg.error = err ? err.toString() : null;
 					flow.proxy.online && flow.proxy.send(msg);
 					callback && callback(msg);
@@ -2190,14 +2190,14 @@ function MAKEFLOWSTREAM(meta) {
 					var instance = flow.meta.flow[key];
 					instance.variables && instance.variables(flow.variables);
 				}
-				msg.TYPE = 'flow/variables';
+				msg.event_type = 'flow/variables';
 				flow.proxy.online && flow.proxy.send(msg);
 				callback && callback(msg);
 				save();
 				break;
 
 			case 'sources':
-				msg.TYPE = 'flow/sources';
+				msg.event_type = 'flow/sources';
 				msg.data = flow.sources;
 				flow.proxy.online && flow.proxy.send(msg, 1, clientid);
 				callback && callback(msg);
@@ -2223,13 +2223,13 @@ function MAKEFLOWSTREAM(meta) {
 						save();
 					}
 				}
-				msg.TYPE = 'flow/pause';
+				msg.event_type = 'flow/pause';
 				flow.proxy.online && flow.proxy.send(msg, 2, clientid);
 				callback && callback(msg);
 				break;
 
 			case 'source_read':
-				msg.TYPE = 'flow/source_read';
+				msg.event_type = 'flow/source_read';
 				msg.data = flow.sources[msg.id];
 				msg.error = msg.data ? null : 'Not found';
 				flow.proxy.online && flow.proxy.send(msg, 1, clientid);
@@ -2242,7 +2242,7 @@ function MAKEFLOWSTREAM(meta) {
 
 					if (err) {
 						delete msg.data;
-						msg.TYPE = 'flow/source_save';
+						msg.event_type = 'flow/source_save';
 						msg.error = err.toString();
 						flow.proxy.online && flow.proxy.send(msg, 1, clientid);
 						callback && callback(msg);
@@ -2265,7 +2265,7 @@ function MAKEFLOWSTREAM(meta) {
 
 					TMS.refresh(flow);
 					save();
-					flow.proxy.online && flow.proxy.send({ TYPE: 'flow/source_save', callbackid: msg.callbackid, error: null }, 1, clientid);
+					flow.proxy.online && flow.proxy.send({ event_type: 'flow/source_save', callbackid: msg.callbackid, error: null }, 1, clientid);
 					callback && callback(msg);
 				});
 
@@ -2273,7 +2273,7 @@ function MAKEFLOWSTREAM(meta) {
 
 			case 'source_remove':
 
-				msg.TYPE = 'flow/remove';
+				msg.event_type = 'flow/remove';
 				var source = flow.sources[msg.id];
 				if (source) {
 					delete flow.sources[msg.id];
@@ -2303,7 +2303,7 @@ function MAKEFLOWSTREAM(meta) {
 				tmp = flow.meta.components[msg.id];
 				if (tmp && tmp.meta) {
 					if (tmp.meta.readonly) {
-						msg.TYPE = 'flow/component_read';
+						msg.event_type = 'flow/component_read';
 						msg.data = null;
 						msg.error = 'The component cannot be edited';
 						flow.proxy.online && flow.proxy.send(msg, 1, clientid);
@@ -2312,7 +2312,7 @@ function MAKEFLOWSTREAM(meta) {
 					}
 				}
 
-				msg.TYPE = 'flow/component_read';
+				msg.event_type = 'flow/component_read';
 				msg.data = flow.meta.components[msg.id] ? flow.meta.components[msg.id].ui.raw : null;
 				msg.error = msg.data == null ? 'Not found' : null;
 				flow.proxy.online && flow.proxy.send(msg, 1, clientid);
@@ -2325,7 +2325,7 @@ function MAKEFLOWSTREAM(meta) {
 				tmp = flow.meta.components[msg.id];
 				if (tmp && tmp.meta) {
 					if (tmp.meta.readonly) {
-						msg.TYPE = 'flow/component_save';
+						msg.event_type = 'flow/component_save';
 						msg.error = 'The component cannot be edited';
 						flow.proxy.online && flow.proxy.send(msg, 1, clientid);
 						callback && callback(msg);
@@ -2335,7 +2335,7 @@ function MAKEFLOWSTREAM(meta) {
 
 				flow.add(msg.id, msg.data, function(err) {
 					delete msg.data;
-					msg.TYPE = 'flow/component_save';
+					msg.event_type = 'flow/component_save';
 					msg.error = err ? err.toString() : null;
 					flow.proxy.online && flow.proxy.send(msg, 1, clientid);
 					callback && callback(msg);
@@ -2350,7 +2350,7 @@ function MAKEFLOWSTREAM(meta) {
 				tmp = flow.meta.components[msg.id];
 				if (tmp && tmp.meta) {
 					if (tmp.meta.protected) {
-						msg.TYPE = 'flow/component_remove';
+						msg.event_type = 'flow/component_remove';
 						msg.error = 'The component cannot be removed';
 						flow.proxy.online && flow.proxy.send(msg, 1, clientid);
 						callback && callback(msg);
@@ -2449,7 +2449,7 @@ function MAKEFLOWSTREAM(meta) {
 			if (Parent || Flow.$events.stats) {
 				let pstats = { paused: flow.paused, messages: flow.stats.messages, pending: flow.stats.pending, memory: flow.stats.memory, minutes: flow.stats.minutes, errors: flow.stats.errors, mm: flow.stats.mm, pid: process.pid };
 				if (Parent)
-					Parent.postMessage({ TYPE: 'stream/stats', data: pstats });
+					Parent.postMessage({ event_type: 'stream/stats', data: pstats });
 				else if (Flow.$events.stats)
 					Flow.emit(flow.$schema.id, pstats);
 			}
@@ -2458,7 +2458,7 @@ function MAKEFLOWSTREAM(meta) {
 		notifier++;
 		stats.paused = flow.paused;
 
-		flow.stats.TYPE = 'flow/stats';
+		flow.stats.event_type = 'flow/stats';
 		flow.proxy.online && flow.proxy.send(stats);
 	};
 
@@ -2559,7 +2559,7 @@ function MAKEFLOWSTREAM(meta) {
 				save();
 			}
 
-			flow.proxy.online && flow.proxy.send({ TYPE: 'flow/redraw', id: instance.id, data: item });
+			flow.proxy.online && flow.proxy.send({ event_type: 'flow/redraw', id: instance.id, data: item });
 		};
 
 		instance.newvariables = function(data) {
@@ -2606,7 +2606,7 @@ function MAKEFLOWSTREAM(meta) {
 
 	flow.onreconfigure = function(instance, init) {
 		if (!init) {
-			flow.proxy.online && flow.proxy.send({ TYPE: 'flow/config', id: instance.id, data: instance.config });
+			flow.proxy.online && flow.proxy.send({ event_type: 'flow/config', id: instance.id, data: instance.config });
 			flow.proxy.refresh('configure');
 			save();
 		}
@@ -2628,13 +2628,13 @@ function MAKEFLOWSTREAM(meta) {
 			flow.errors.pop();
 
 		flow.proxy.error(err, source, this);
-		flow.proxy.online && flow.proxy.send({ TYPE: 'flow/error', error: err, id: obj.id, ts: obj.ts, source: source });
+		flow.proxy.online && flow.proxy.send({ event_type: 'flow/error', error: err, id: obj.id, ts: obj.ts, source: source });
 	};
 
 	var sendstatusforce = function(instance) {
 		instance.$statusdelay = null;
 		if (instance.$status != null && flow.proxy.online)
-			flow.proxy.online && flow.proxy.send({ TYPE: 'flow/status', id: instance.id, data: instance.$status });
+			flow.proxy.online && flow.proxy.send({ event_type: 'flow/status', id: instance.id, data: instance.$status });
 	};
 
 	// component.status() will execute this method
@@ -2649,7 +2649,7 @@ function MAKEFLOWSTREAM(meta) {
 			if (!instance.$statusdelay)
 				instance.$statusdelay = setTimeout(sendstatusforce, delay || 1000, instance);
 		} else if (instance.$status != null && flow.proxy.online)
-			flow.proxy.online && flow.proxy.send({ TYPE: 'flow/status', id: instance.id, data: instance.$status });
+			flow.proxy.online && flow.proxy.send({ event_type: 'flow/status', id: instance.id, data: instance.$status });
 	};
 
 	// component.dashboard() will execute this method
@@ -2663,7 +2663,7 @@ function MAKEFLOWSTREAM(meta) {
 			instance.$dashboard = status;
 
 		if (status != null && flow.proxy.online)
-			flow.proxy.online && flow.proxy.send({ TYPE: 'flow/dashboard', id: instance.id, data: status });
+			flow.proxy.online && flow.proxy.send({ event_type: 'flow/dashboard', id: instance.id, data: status });
 
 	};
 
@@ -2683,7 +2683,7 @@ function MAKEFLOWSTREAM(meta) {
 	});
 
 	var makemeta = function() {
-		return { TYPE: 'flow/flowstream', id: flow.$schema.id, version: VERSION, paused: flow.paused, node: F.version_node, total: F.version, name: flow.$schema.name, version2: flow.$schema.version, icon: flow.$schema.icon, reference: flow.$schema.reference, author: flow.$schema.author, color: flow.$schema.color, origin: flow.$schema.origin, notify: flow.$schema.origin + NOTIFYPATH + flow.$schema.id + '-/', readme: flow.$schema.readme, url: flow.$schema.url, proxypath: isFLOWSTREAMWORKER ? flow.$schema.proxypath : '/', env: flow.$schema.env, worker: isFLOWSTREAMWORKER ? (W.workerData ? 'Worker Thread' : 'Child Process') : false, cloning: flow.cloning };
+		return { event_type: 'flow/flowstream', id: flow.$schema.id, version: VERSION, paused: flow.paused, node: F.version_node, total: F.version, name: flow.$schema.name, version2: flow.$schema.version, icon: flow.$schema.icon, reference: flow.$schema.reference, author: flow.$schema.author, color: flow.$schema.color, origin: flow.$schema.origin, notify: flow.$schema.origin + NOTIFYPATH + flow.$schema.id + '-/', readme: flow.$schema.readme, url: flow.$schema.url, proxypath: isFLOWSTREAMWORKER ? flow.$schema.proxypath : '/', env: flow.$schema.env, worker: isFLOWSTREAMWORKER ? (W.workerData ? 'Worker Thread' : 'Child Process') : false, cloning: flow.cloning };
 	};
 
 	flow.proxy.refreshmeta = function() {
@@ -2697,11 +2697,11 @@ function MAKEFLOWSTREAM(meta) {
 		if (flow.proxy.online) {
 			flow.proxy.send(makemeta(), 1, clientid);
 			if (!metaonly) {
-				flow.proxy.send({ TYPE: 'flow/variables', data: flow.variables }, 1, clientid);
-				flow.proxy.send({ TYPE: 'flow/variables2', data: flow.variables2 }, 1, clientid);
-				flow.proxy.send({ TYPE: 'flow/components', data: flow.components(true) }, 1, clientid);
-				flow.proxy.send({ TYPE: 'flow/design', data: flow.export() }, 1, clientid);
-				flow.proxy.send({ TYPE: 'flow/errors', data: flow.errors }, 1, clientid);
+				flow.proxy.send({ event_type: 'flow/variables', data: flow.variables }, 1, clientid);
+				flow.proxy.send({ event_type: 'flow/variables2', data: flow.variables2 }, 1, clientid);
+				flow.proxy.send({ event_type: 'flow/components', data: flow.components(true) }, 1, clientid);
+				flow.proxy.send({ event_type: 'flow/design', data: flow.export() }, 1, clientid);
+				flow.proxy.send({ event_type: 'flow/errors', data: flow.errors }, 1, clientid);
 				setTimeout(function() {
 					flow.instances().wait(function(com, next) {
 						com.status();
@@ -2854,7 +2854,7 @@ TMS.connect = function(fs, sourceid, callback) {
 
 	client.on('message', function(msg) {
 
-		var type = msg.type || msg.TYPE;
+		var type = msg.type || msg.event_type;
 		var tmp;
 
 		switch (type) {
@@ -3234,8 +3234,8 @@ TMS.refresh = function(fs, callback) {
 		}, function() {
 
 			if (fs.proxy.online) {
-				fs.proxy.send({ TYPE: 'flow/components', data: fs.components(true) });
-				fs.proxy.send({ TYPE: 'flow/design', data: fs.export() });
+				fs.proxy.send({ event_type: 'flow/components', data: fs.components(true) });
+				fs.proxy.send({ event_type: 'flow/design', data: fs.export() });
 			}
 
 			fs.save();
@@ -3310,7 +3310,7 @@ if (process.argv[1].endsWith('flow-flowstream.js')) {
 	if (process.argv.includes('--fork')) {
 
 		process.once('message', function(msg) {
-			if (msg.TYPE === 'init') {
+			if (msg.event_type === 'init') {
 				Parent = process;
 				if (!Parent.postMessage)
 					Parent.postMessage = process.send;

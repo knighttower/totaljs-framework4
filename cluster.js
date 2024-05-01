@@ -1,9 +1,9 @@
 const Fs = require('fs');
 const Cluster = require('cluster');
-const CLUSTER_REQ = { TYPE: 'req' };
-const CLUSTER_RES = { TYPE: 'res' };
-const CLUSTER_EMIT = { TYPE: 'emit' };
-const CLUSTER_MASTER = { TYPE: 'master' };
+const CLUSTER_REQ = { event_type: 'req' };
+const CLUSTER_RES = { event_type: 'res' };
+const CLUSTER_EMIT = { event_type: 'emit' };
+const CLUSTER_MASTER = { event_type: 'master' };
 const MAXTHREADLATENCY = 70;
 const FORKS = [];
 
@@ -377,7 +377,7 @@ function message(m) {
 
 	if (m === 'total:init') {
 		OPTIONS.options.id = this.$id;
-		this.send({ TYPE: 'init', bundling: !CONTINUE, id: this.$id, mode: OPTIONS.mode, options: OPTIONS.options, unixsocket: OPTIONS.unixsocket, threads: OPTIONS.count, index: this.$index, https: this.$https });
+		this.send({ event_type: 'init', bundling: !CONTINUE, id: this.$id, mode: OPTIONS.mode, options: OPTIONS.options, unixsocket: OPTIONS.unixsocket, threads: OPTIONS.count, index: this.$index, https: this.$https });
 		return;
 	}
 
@@ -406,12 +406,12 @@ function message(m) {
 		return;
 	}
 
-	if (m.TYPE === 'master') {
+	if (m.event_type === 'master') {
 		if (MASTER && MASTER[m.name]) {
 			for (var i = 0, length = MASTER[m.name].length; i < length; i++)
 				MASTER[m.name][i](m.a, m.b, m.c, m.d, m.e);
 		}
-	} else if (m.TYPE === 'snapshot') {
+	} else if (m.event_type === 'snapshot') {
 		var is = false;
 		STATS[i];
 		for (var i = 0; i < STATS.length; i++) {
@@ -425,11 +425,11 @@ function message(m) {
 		!is && STATS.push(m.data);
 	} else {
 
-		if (m.TYPE === 'total:emit') {
+		if (m.event_type === 'total:emit') {
 			if (process.send)
 				process.send(m);
 			else {
-				m.TYPE = 'emit';
+				m.event_type = 'emit';
 				for (var i = 0; i < FORKS.length; i++)
 					FORKS[i] && FORKS[i].$ready && FORKS[i].send(m);
 			}
@@ -476,7 +476,7 @@ function exec(index, https) {
 	(function(fork) {
 		setTimeout(function() {
 			OPTIONS.options.id = fork.$id;
-			fork.send({ TYPE: 'init', bundling: !CONTINUE, id: fork.$id, mode: OPTIONS.mode, options: OPTIONS.options, threads: OPTIONS.count, index: index, https: https });
+			fork.send({ event_type: 'init', bundling: !CONTINUE, id: fork.$id, mode: OPTIONS.mode, options: OPTIONS.options, threads: OPTIONS.count, index: index, https: https });
 		}, fork.$id * 500);
 	})(fork);*/
 }
@@ -487,7 +487,7 @@ function fork() {
 }
 
 function on_init(msg) {
-	switch (msg.TYPE) {
+	switch (msg.event_type) {
 		case 'init':
 			CLUSTER_EMIT.id = msg.id;
 			CLUSTER_REQ.id = msg.id;
@@ -499,7 +499,7 @@ function on_init(msg) {
 			else
 				F.http(msg.mode, msg.options);
 			F.isCluster = true;
-			F.removeListener(msg.TYPE, on_init);
+			F.removeListener(msg.event_type, on_init);
 			break;
 	}
 }

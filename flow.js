@@ -2,7 +2,7 @@
 
 'use strict';
 
-const PING = { TYPE: 'ping' };
+const PING = { event_type: 'ping' };
 const REG_BK = /-bk|_bk/i;
 
 var FS = exports;
@@ -184,7 +184,7 @@ FS.notify = function(controller, id) {
 		obj.ip = $.ip;
 		obj.params = arr.length > 2 ? arr.slice(2) : EMPTYOBJECT;
 		arr[1] && instance.notify(arr[1], obj);
-		instance.flow && instance.flow.$socket && instance.flow.$socket.send({ TYPE: 'flow/notify', data: obj });
+		instance.flow && instance.flow.$socket && instance.flow.$socket.send({ event_type: 'flow/notify', data: obj });
 	}
 
 	if ($.query.REDIRECT) {

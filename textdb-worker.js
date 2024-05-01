@@ -2,7 +2,7 @@ require('./utils');
 
 const Worker = require('worker_threads');
 
-var STATS = { TYPE: 'stats', reading: 0, writing: 0, usage: 0 };
+var STATS = { event_type: 'stats', reading: 0, writing: 0, usage: 0 };
 var counter = 0;
 var reading = 0;
 var writing = 0;
@@ -55,12 +55,12 @@ function processcommand(msg) {
 
 	var callback;
 
-	switch (msg.TYPE) {
+	switch (msg.event_type) {
 
 		case 'find':
 			reading++;
 			instance.find().assign(msg.builder).callback(function(err, builder) {
-				builder.TYPE = 'response';
+				builder.event_type = 'response';
 				builder.date = true;
 				Worker.parentPort.postMessage(builder);
 			});
@@ -73,14 +73,14 @@ function processcommand(msg) {
 			tmp.pendingread = instance.pending_reader.length + (instance.pending_reader2 ? instance.pending_reader2.length : 0) + (instance.pending_streamer ? instance.pending_streamer.length : 0);
 			tmp.documents = instance.total;
 			tmp.size = (instance.filesize || 0);
-			tmp.TYPE = 'response';
+			tmp.event_type = 'response';
 			Worker.parentPort.postMessage(tmp);
 			break;
 
 		case 'find2':
 			reading++;
 			instance.find2().assign(msg.builder).callback(function(err, builder) {
-				builder.TYPE = 'response';
+				builder.event_type = 'response';
 				builder.date = true;
 				Worker.parentPort.postMessage(builder);
 			});
@@ -89,7 +89,7 @@ function processcommand(msg) {
 		case 'backups':
 			reading++;
 			instance.backups().assign(msg.builder).callback(function(err, builder) {
-				builder.TYPE = 'response';
+				builder.event_type = 'response';
 				Worker.parentPort.postMessage(builder);
 			});
 			break;
@@ -97,7 +97,7 @@ function processcommand(msg) {
 		case 'insert':
 
 			callback = function(err, builder) {
-				builder.TYPE = 'response';
+				builder.event_type = 'response';
 				Worker.parentPort.postMessage(builder);
 			};
 
@@ -123,7 +123,7 @@ function processcommand(msg) {
 		case 'update':
 
 			callback = function(err, builder) {
-				builder.TYPE = 'response';
+				builder.event_type = 'response';
 				Worker.parentPort.postMessage(builder);
 			};
 
@@ -147,7 +147,7 @@ function processcommand(msg) {
 		case 'remove':
 
 			callback = function(err, builder) {
-				builder.TYPE = 'response';
+				builder.event_type = 'response';
 				Worker.parentPort.postMessage(builder);
 			};
 
@@ -174,15 +174,15 @@ function processcommand(msg) {
 			break;
 
 		case 'alter':
-			instance.alter(msg.builder.schema, err => Worker.parentPort.postMessage({ TYPE: 'response2', cid: msg.cid, err: err }));
+			instance.alter(msg.builder.schema, err => Worker.parentPort.postMessage({ event_type: 'response2', cid: msg.cid, err: err }));
 			break;
 
 		case 'clean':
-			instance.clean(() => Worker.parentPort.postMessage({ TYPE: 'response', cid: msg.cid, success: true }));
+			instance.clean(() => Worker.parentPort.postMessage({ event_type: 'response', cid: msg.cid, success: true }));
 			break;
 
 		case 'clear':
-			instance.clear(() => Worker.parentPort.postMessage({ TYPE: 'response', cid: msg.cid, success: true }));
+			instance.clear(() => Worker.parentPort.postMessage({ event_type: 'response', cid: msg.cid, success: true }));
 			break;
 
 		case 'recount':
@@ -195,13 +195,13 @@ function processcommand(msg) {
 			break;
 
 		case 'usage':
-			Worker.parentPort.postMessage({ TYPE: 'response', cid: msg.cid, documents: instance.total || 0, size: instance.filesize || 0 });
+			Worker.parentPort.postMessage({ event_type: 'response', cid: msg.cid, documents: instance.total || 0, size: instance.filesize || 0 });
 			break;
 
 		case 'lock':
 			instance.lock(function(next) {
 				instance.unlock = next;
-				Worker.parentPort.postMessage({ TYPE: 'response', cid: msg.cid, success: true });
+				Worker.parentPort.postMessage({ event_type: 'response', cid: msg.cid, success: true });
 			});
 			break;
 
@@ -261,7 +261,7 @@ function measure() {
 }
 
 setTimeout(function() {
-	Worker.parentPort.postMessage({ TYPE: 'ready' });
+	Worker.parentPort.postMessage({ event_type: 'ready' });
 	measure();
 }, 100);
 

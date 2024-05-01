@@ -2021,37 +2021,37 @@ exports.validate_builder = function(model, error, schema, path, index, $, pluspa
 
 	for (var name of properties) {
 
-		var TYPE = schema.schema[name];
-		if (!TYPE)
+		var event_type = schema.schema[name];
+		if (!event_type)
 			continue;
 
-		if (TYPE.can && !TYPE.can(model, operations))
+		if (event_type.can && !event_type.can(model, operations))
 			continue;
 
 		var value = model[name];
 		var type = typeof(value);
 		var prefix = schema.resourcePrefix ? (schema.resourcePrefix + name) : name;
 
-		if (TYPE.required && value === undefined) {
+		if (event_type.required && value === undefined) {
 			error.push(pluspath + name, '@', current + name, index, prefix);
 			continue;
 		} else if (type === 'function')
 			value = model[name]();
 
-		if (TYPE.isArray) {
-			if (TYPE.type === 7 && value instanceof Array && value.length) {
-				var nestedschema = GETSCHEMA(TYPE.raw);
+		if (event_type.isArray) {
+			if (event_type.type === 7 && value instanceof Array && value.length) {
+				var nestedschema = GETSCHEMA(event_type.raw);
 				if (nestedschema) {
 					for (var j = 0, jl = value.length; j < jl; j++)
 						exports.validate_builder(value[j], error, nestedschema, current + name + '[' + j + ']', j, $, pluspath, operations);
 				} else
-					throw new Error('Nested schema "{0}" not found in "{1}".'.format(TYPE.raw, schema.parent.name));
+					throw new Error('Nested schema "{0}" not found in "{1}".'.format(event_type.raw, schema.parent.name));
 			} else {
 
-				if (!TYPE.required)
+				if (!event_type.required)
 					continue;
 
-				result = TYPE.validate ? TYPE.validate(value, model) : null;
+				result = event_type.validate ? event_type.validate(value, model) : null;
 				if (result == null) {
 					result = value instanceof Array ? value.length > 0 : false;
 					if (result == null || result === true)
@@ -2061,49 +2061,49 @@ exports.validate_builder = function(model, error, schema, path, index, $, pluspa
 				type = typeof(result);
 				if (type === 'string') {
 					if (result[0] === '@')
-						error.push(pluspath + name, TYPE.invalid, current + name, index, schema.resourcePrefix + result.substring(1));
+						error.push(pluspath + name, event_type.invalid, current + name, index, schema.resourcePrefix + result.substring(1));
 					else
 						error.push(pluspath + name, result, current + name, index, prefix);
 				} else if (type === 'boolean')
-					!result && error.push(pluspath + name, TYPE.invalid, current + name, index, prefix);
+					!result && error.push(pluspath + name, event_type.invalid, current + name, index, prefix);
 			}
 			continue;
 		}
 
-		if (TYPE.type === 7) {
+		if (event_type.type === 7) {
 
-			if (!value && !TYPE.required)
+			if (!value && !event_type.required)
 				continue;
 
 			// Another schema
-			result = TYPE.validate ? TYPE.validate(value, model) : null;
+			result = event_type.validate ? event_type.validate(value, model) : null;
 
 			if (result == null) {
-				var nestedschema = GETSCHEMA(TYPE.raw);
+				var nestedschema = GETSCHEMA(event_type.raw);
 				if (nestedschema)
 					exports.validate_builder(value, error, nestedschema, current + name, index, $, pluspath, operations);
 				else {
-					throw new Error(schema.parent ? 'Nested schema "{0}" not found in "{1}".'.format(TYPE.raw, schema.parent.name) : 'Bad type "{0} -> {1}" in the "{2}" schema'.format(name, TYPE.raw, schema.name));
+					throw new Error(schema.parent ? 'Nested schema "{0}" not found in "{1}".'.format(event_type.raw, schema.parent.name) : 'Bad type "{0} -> {1}" in the "{2}" schema'.format(name, event_type.raw, schema.name));
 				}
 			} else {
 				type = typeof(result);
 				if (type === 'string') {
 					if (result[0] === '@')
-						error.push(pluspath + name, TYPE.invalid, current + name, index, schema.resourcePrefix + result.substring(1));
+						error.push(pluspath + name, event_type.invalid, current + name, index, schema.resourcePrefix + result.substring(1));
 					else
 						error.push(pluspath + name, result, current + name, index, prefix);
 				} else if (type === 'boolean')
-					!result && error.push(pluspath + name, TYPE.invalid, current + name, index, prefix);
+					!result && error.push(pluspath + name, event_type.invalid, current + name, index, prefix);
 			}
 			continue;
 		}
 
-		if (!TYPE.required)
+		if (!event_type.required)
 			continue;
 
-		result = TYPE.validate ? TYPE.validate(value, model) : null;
+		result = event_type.validate ? event_type.validate(value, model) : null;
 		if (result == null) {
-			result = validate_builder_default(name, value, TYPE);
+			result = validate_builder_default(name, value, event_type);
 			if (result == null || result === true)
 				continue;
 		}
@@ -2112,11 +2112,11 @@ exports.validate_builder = function(model, error, schema, path, index, $, pluspa
 
 		if (type === 'string') {
 			if (result[0] === '@')
-				error.push(pluspath + name, TYPE.invalid, current + name, index, schema.resourcePrefix + result.substring(1));
+				error.push(pluspath + name, event_type.invalid, current + name, index, schema.resourcePrefix + result.substring(1));
 			else
 				error.push(pluspath + name, result, current + name, index, prefix);
 		} else if (type === 'boolean')
-			!result && error.push(pluspath + name, TYPE.invalid, current + name, index, prefix);
+			!result && error.push(pluspath + name, event_type.invalid, current + name, index, prefix);
 	}
 
 	return error;

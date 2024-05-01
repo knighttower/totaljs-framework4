@@ -59,11 +59,11 @@ const REPOSITORY_COMPONENTS = '$components';
 const ATTR_END = '"';
 const ETAG = '858';
 const CONCAT = [null, null];
-const CLUSTER_CACHE_SET = { TYPE: 'cache', method: 'set' };
-const CLUSTER_CACHE_REMOVE = { TYPE: 'cache', method: 'remove' };
-const CLUSTER_CACHE_REMOVEALL = { TYPE: 'cache', method: 'removeAll' };
-const CLUSTER_CACHE_CLEAR = { TYPE: 'cache', method: 'clear' };
-const CLUSTER_SNAPSHOT = { TYPE: 'snapshot' };
+const CLUSTER_CACHE_SET = { event_type: 'cache', method: 'set' };
+const CLUSTER_CACHE_REMOVE = { event_type: 'cache', method: 'remove' };
+const CLUSTER_CACHE_REMOVEALL = { event_type: 'cache', method: 'removeAll' };
+const CLUSTER_CACHE_CLEAR = { event_type: 'cache', method: 'clear' };
+const CLUSTER_SNAPSHOT = { event_type: 'snapshot' };
 const GZIPFILE = { memLevel: 9 };
 const GZIPSTREAM = { memLevel: 1 };
 const MODELERROR = {};
@@ -2867,7 +2867,7 @@ global.ON = function(name, fn) {
 		F.$events[name] = [fn];
 };
 
-var EMIT2MESSAGE = { TYPE: 'total:emit' };
+var EMIT2MESSAGE = { event_type: 'total:emit' };
 
 global.EMIT2 = function(name, a, b, c, d, e) {
 
@@ -8663,7 +8663,7 @@ require('total4/{1}')(options);`.format(socket.replace(/\\/g, '\\\\'), DEBUG ? '
 }
 
 function threadforkmessage(m) {
-	if (m && m.TYPE === 'total:emit' && m.name) {
+	if (m && m.event_type === 'total:emit' && m.name) {
 		EMIT(m.name, m.a, m.b, m.c, m.d, m.e);
 		if (F.threads) {
 			for (var key in F.threads)
@@ -16255,7 +16255,7 @@ WebSocketProto.api = function(api) {
 	}
 
 	self.on('message', function(client, msg) {
-		if (msg && msg.TYPE === 'api')
+		if (msg && msg.event_type === 'api')
 			client.$exec(api, msg);
 	});
 	return self;
@@ -19692,14 +19692,14 @@ process.on('message', function(msg, h) {
 		F.cache.clear();
 	else if (msg === 'stop' || msg === 'exit' || msg === 'kill')
 		F.stop();
-	else if (msg && msg.TYPE && msg.ID !== F.id) {
-		if (msg.TYPE === 'req')
+	else if (msg && msg.event_type && msg.ID !== F.id) {
+		if (msg.event_type === 'req')
 			F.cluster.req(msg);
-		else if (msg.TYPE === 'res')
+		else if (msg.event_type === 'res')
 			msg.target === F.id && F.cluster.res(msg);
-		else if (msg.TYPE === 'emit')
+		else if (msg.event_type === 'emit')
 			F.$events[msg.name] && EMIT(msg.name, msg.a, msg.b, msg.c, msg.d, msg.e);
-		else if (msg.TYPE === 'session') {
+		else if (msg.event_type === 'session') {
 			var session = SESSION(msg.NAME);
 			switch (msg.method) {
 				case 'remove':
@@ -19743,7 +19743,7 @@ process.on('message', function(msg, h) {
 					session.$sync = true;
 					break;
 			}
-		} else if (msg.TYPE === 'cache') {
+		} else if (msg.event_type === 'cache') {
 			switch (msg.method) {
 				case 'set':
 					F.cache.$sync = false;
@@ -19768,8 +19768,8 @@ process.on('message', function(msg, h) {
 			}
 		}
 
-		if (msg.TYPE === 'total:emit') {
-			msg.TYPE = 'emit';
+		if (msg.event_type === 'total:emit') {
+			msg.event_type = 'emit';
 			F.cluster.emit2(msg);
 		}
 	}
