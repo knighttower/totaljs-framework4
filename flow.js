@@ -18,8 +18,8 @@ FS.onerror = function(err, source, id, componentid, stack) {
 	var empty = '---';
 	var output = '';
 
-	output += '|------------- FlowStreamError "' + id + '": ' + new Date().format('yyyy-MM-dd HH:mm:ss') + '\n';
-	output += '| FlowStream: ' + flow.name + '\n';
+	output += '|------------- Flow Error "' + id + '": ' + new Date().format('yyyy-MM-dd HH:mm:ss') + '\n';
+	output += '| Flow: ' + flow.name + '\n';
 	output += '| Source: ' + (source || empty) + '\n';
 	output += '| Instance ID: ' + (id || empty) + '\n';
 	output += '| Component ID: ' + (componentid || empty) + '\n';
